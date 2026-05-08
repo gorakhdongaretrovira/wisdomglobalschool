@@ -255,13 +255,15 @@ export default function Home() {
         @media (min-width: 1024px) { .arrow-btn { width: 54px; height: 54px; min-width: 54px; } }
         .arrow-btn:hover { background: rgba(0,0,0,0.90); border-color: white; }
 
+        /* FIX: Hero section — full-height, single-image, no duplicate */
         .hero-section {
           position: relative;
           width: 100%;
-          height: 100dvh;
           overflow: hidden;
+          background: #000;
         }
 
+        /* FIX: Hero background blur layer — absolute behind image */
         .hero-bg {
           position: absolute;
           inset: 0;
@@ -271,43 +273,50 @@ export default function Home() {
           filter: blur(12px) brightness(0.5);
           transform: scale(1.1);
           z-index: 0;
+          /* FIX: only show bg-blur for current slide via opacity toggling */
         }
 
+        /* FIX: Main hero image — contain so full image visible, no face cropping */
         .hero-slide-img {
-          position: absolute;
-          inset: 0;
+          display: block;
           width: 100%;
-          height: 100%;
+          /* FIX: auto height so image never crops */
+          height: auto;
           object-fit: contain;
-          object-position: center;
+          object-position: center center;
+          position: relative;
           z-index: 1;
         }
 
+        /* FIX: On mobile, images already portrait so let them be natural height */
         @media (max-width: 768px) {
-          .hero-section {
-            height: auto;
-            min-height: 100svh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
           .hero-slide-img {
-            object-fit: contain;
-            object-position: center;
             width: 100%;
-            height: 100%;
+            height: auto;
+            object-fit: contain;
           }
         }
 
-        .hero-overlay {
+        /* FIX: Text overlay — placed at BOTTOM of image with gradient, not over faces */
+        .hero-overlay-gradient {
           position: absolute;
-          inset: 0;
+          /* FIX: gradient starts from bottom, only covers lower 40% so faces safe */
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 55%;
+          background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 50%, transparent 100%);
           z-index: 2;
+          pointer-events: none;
         }
 
         .hero-content {
           position: absolute;
+          /* FIX: anchored to bottom, text stays below faces */
+          bottom: 60px;
+          left: 0;
+          right: 0;
+          padding: 0 5vw;
           z-index: 3;
         }
 
@@ -330,13 +339,15 @@ export default function Home() {
         @media (min-width: 640px) { .gallery-slide-item { flex: 0 0 calc(50% - 10px); border-radius: 14px; } }
         @media (min-width: 900px) { .gallery-slide-item { flex: 0 0 calc(33.333% - 10px); border-radius: 18px; } }
 
+        /* FIX: Gallery images — contain so full image visible */
         .gallery-slide-item img {
           width: 100%;
           aspect-ratio: 4/3;
-          object-fit: cover;
-          object-position: center top;
+          object-fit: contain;
+          object-position: center center;
           display: block;
           transition: transform 0.45s ease;
+          background: #f0f4ff;
         }
         .gallery-slide-item:hover img { transform: scale(1.04); }
 
@@ -487,102 +498,107 @@ export default function Home() {
       `}</style>
 
       {/* ══ 1. HERO ══ */}
+      {/* FIX: Restructured hero — single <img> per slide, no duplicate bg+slide overlap on faces */}
       <section
         className="hero-section"
         onTouchStart={handleHeroTouchStart}
         onTouchEnd={handleHeroTouchEnd}
       >
-        {sliderSlides.map((slide, i) => (
-          <img
-            key={`bg-${i}`}
-            src={isMobile ? slide.mobile : slide.desktop}
-            aria-hidden="true"
-            className="hero-bg"
-            style={{
-              opacity: i === currentSlide ? 1 : 0,
-              transition: "opacity 0.85s ease-in-out",
-            }}
-          />
-        ))}
+        {/* FIX: Slide images — only ONE img per slide, stacked absolutely, opacity fade */}
+        <div style={{ position: "relative", width: "100%" }}>
+          {sliderSlides.map((slide, i) => {
+            const src = isMobile ? slide.mobile : slide.desktop;
+            return (
+              <div
+                key={`slide-${i}`}
+                style={{
+                  position: i === 0 ? "relative" : "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  opacity: i === currentSlide ? 1 : 0,
+                  zIndex: i === currentSlide ? 1 : 0,
+                  transition: "opacity 0.85s ease-in-out",
+                  /* FIX: hidden slides don't take layout space */
+                  ...(i !== 0 ? { height: "100%" } : {}),
+                }}
+              >
+                {/* FIX: Single img element — no bg blur duplicate */}
+                <img
+                  src={src}
+                  alt={`Wisdom Global School – slide ${i + 1}`}
+                  className="hero-slide-img"
+                />
+              </div>
+            );
+          })}
 
-        {sliderSlides.map((slide, i) => (
-          <img
-            key={`slide-${i}`}
-            src={isMobile ? slide.mobile : slide.desktop}
-            alt={`Wisdom Global School – slide ${i + 1}`}
-            className="hero-slide-img"
-            style={{
-              opacity: i === currentSlide ? 1 : 0,
-              zIndex: i === currentSlide ? 1 : 0,
-              transition: "opacity 0.85s ease-in-out",
-            }}
-          />
-        ))}
+          {/* FIX: Gradient overlay — bottom 55% only, faces in upper area remain unobscured */}
+          <div className="hero-overlay-gradient" />
 
-        <div style={{
-          position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
-          background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.10) 100%)",
-        }} />
+          {/* FIX: Hero text content anchored to bottom, NOT over face area */}
+          <div className="hero-content">
+            <div style={{ maxWidth: 620, width: "100%" }}>
+              <h1
+                className={`hero-headline ${heroVisible ? "hero-text-visible delay-2" : "hero-text-enter"}`}
+                style={{ fontWeight: 900, color: "white", marginBottom: 12, textShadow: "0 2px 18px rgba(0,0,0,0.35)" }}
+              >
+                Your Kids Deserve<br />
+                <span style={{ color: "#FBBF24" }}>The Best Education</span>
+              </h1>
 
-        <div style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", alignItems: "flex-end", padding: "0 5vw 72px" }}>
-          <div style={{ maxWidth: 620, width: "100%" }}>
-            <h1
-              className={`hero-headline ${heroVisible ? "hero-text-visible delay-2" : "hero-text-enter"}`}
-              style={{ fontWeight: 900, color: "white", marginBottom: 12, textShadow: "0 2px 18px rgba(0,0,0,0.35)" }}
-            >
-              Your Kids Deserve<br />
-              <span style={{ color: "#FBBF24" }}>The Best Education</span>
-            </h1>
+              <p
+                className={heroVisible ? "hero-text-visible delay-3" : "hero-text-enter"}
+                style={{
+                  fontSize: "clamp(12px, 3.5vw, 16px)", color: "rgba(255,255,255,0.92)",
+                  lineHeight: 1.7, marginBottom: 22, fontWeight: 400, maxWidth: 460,
+                  textShadow: "0 1px 10px rgba(0,0,0,0.5)",
+                }}
+              >
+                Safe, activity-based learning environment where every child grows with confidence, curiosity and joy.
+              </p>
 
-            <p
-              className={heroVisible ? "hero-text-visible delay-3" : "hero-text-enter"}
-              style={{
-                fontSize: "clamp(12px, 3.5vw, 16px)", color: "rgba(255,255,255,0.92)",
-                lineHeight: 1.7, marginBottom: 22, fontWeight: 400, maxWidth: 460,
-                textShadow: "0 1px 10px rgba(0,0,0,0.5)",
-              }}
-            >
-              Safe, activity-based learning environment where every child grows with confidence, curiosity and joy.
-            </p>
-
-            <div className={heroVisible ? "hero-text-visible delay-3" : "hero-text-enter"} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link to="/contact" className="btn-orange">Admissions Open</Link>
-<Link to="/contact" className="btn-outline-white">Book a Visit</Link>
+              <div className={heroVisible ? "hero-text-visible delay-3" : "hero-text-enter"} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <Link to="/contact" className="btn-orange">Admissions Open</Link>
+                <Link to="/contact" className="btn-outline-white">Book a Visit</Link>
+              </div>
             </div>
           </div>
-        </div>
 
-        <button
-          onClick={prevSlide}
-          className="arrow-btn"
-          aria-label="Previous slide"
-          style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", zIndex: 20 }}
-        >
-          &#8249;
-        </button>
-        <button
-          onClick={nextSlide}
-          className="arrow-btn"
-          aria-label="Next slide"
-          style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", zIndex: 20 }}
-        >
-          &#8250;
-        </button>
+          {/* Prev / Next Buttons */}
+          <button
+            onClick={prevSlide}
+            className="arrow-btn"
+            aria-label="Previous slide"
+            style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", zIndex: 20 }}
+          >
+            &#8249;
+          </button>
+          <button
+            onClick={nextSlide}
+            className="arrow-btn"
+            aria-label="Next slide"
+            style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", zIndex: 20 }}
+          >
+            &#8250;
+          </button>
 
-        <div className="dot-nav" style={{ position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)", zIndex: 10, display: "flex", gap: 6, alignItems: "center" }}>
-          {sliderSlides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goToSlide(i)}
-              className={i === currentSlide ? "active" : ""}
-              style={{ background: "rgba(255,255,255,0.65)" }}
-              aria-label={`Go to slide ${i + 1}`}
-            />
-          ))}
-        </div>
+          {/* Dot nav */}
+          <div className="dot-nav" style={{ position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)", zIndex: 10, display: "flex", gap: 6, alignItems: "center" }}>
+            {sliderSlides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goToSlide(i)}
+                className={i === currentSlide ? "active" : ""}
+                style={{ background: "rgba(255,255,255,0.65)" }}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </div>
 
-        <div style={{ position: "absolute", bottom: 14, right: 14, zIndex: 10, color: "rgba(255,255,255,0.75)", fontSize: 9, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 4 }}>
-          <span style={{ fontSize: 12 }}>↓</span> Scroll
+          <div style={{ position: "absolute", bottom: 14, right: 14, zIndex: 10, color: "rgba(255,255,255,0.75)", fontSize: 9, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 12 }}>↓</span> Scroll
+          </div>
         </div>
       </section>
 
@@ -607,8 +623,9 @@ export default function Home() {
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div className="about-grid">
             <div style={{ position: "relative" }}>
-              <div style={{ borderRadius: 16, overflow: "hidden", aspectRatio: "4/3", boxShadow: "0 12px 40px rgba(11,87,183,0.18)", background: "#000" }}>
-                <img src={s2} alt="School" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+              <div style={{ borderRadius: 16, overflow: "hidden", aspectRatio: "4/3", boxShadow: "0 12px 40px rgba(11,87,183,0.18)", background: "#f0f4ff" }}>
+                {/* FIX: use imported variable, object-fit contain */}
+                <img src={s2} alt="School" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", display: "block" }} />
               </div>
               <div style={{
                 position: "absolute", bottom: -12, right: -4,
@@ -730,6 +747,7 @@ export default function Home() {
             <div className="gallery-slider-track" style={{ transform: `translateX(calc(-${gallerySlide * (100 / visiblePerSlide)}% - ${gallerySlide * 10 / visiblePerSlide}px))` }}>
               {galleryImages.map((img, i) => (
                 <div key={i} className="gallery-slide-item">
+                  {/* FIX: single img, object-fit contain, no face cropping */}
                   <img src={img} alt={GALLERY_TAGLINES[i]} loading="lazy" />
                   <div className="gallery-overlay"><div className="gallery-tagline">{GALLERY_TAGLINES[i]}</div></div>
                 </div>
@@ -798,7 +816,7 @@ export default function Home() {
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 170, width: "100%" }}>
-             <Link to="/contact" className="btn-orange">Apply Now →</Link>
+              <Link to="/contact" className="btn-orange">Apply Now →</Link>
               <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 4, flexWrap: "wrap" }}>
               </div>
             </div>

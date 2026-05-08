@@ -1,17 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 
-// ─── Image Import ────────────────────────────────────────────────────────────
-// Place your image at: src/assets/principal/sonali_marne.jpg
-// Uncomment the line below when integrating into your project:
-// import principalImage from "../assets/principal/sonali_marne.jpg";
+import principalImage from "../assets/principal/sonali_marne.jpg";
 
-// Staff images — imported from src/assets/Staff/
-// import staff1 from "../assets/Staff/satff1.jpg";
-// import staff2 from "../assets/Staff/staff.jpg";
-// import staff3 from "../assets/Staff/staff2.jpg";
+import staff1 from "../assets/Staff/satff1.jpg";
+import staff2 from "../assets/Staff/staff.jpg";
+import staff3 from "../assets/Staff/staff2.jpg";
 // import staff4 from "../assets/Staff/staff3.jpg";
 
-// ─── Animation Hook ──────────────────────────────────────────────────────────
 function useInView(options = {}) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -26,7 +21,6 @@ function useInView(options = {}) {
   return [ref, inView];
 }
 
-// ─── Reusable Components ─────────────────────────────────────────────────────
 function SectionLabel({ children }) {
   return (
     <span
@@ -66,7 +60,6 @@ function AnimatedSection({ children, className = "", delay = 0 }) {
   );
 }
 
-// ─── Section 1: Hero ─────────────────────────────────────────────────────────
 function Hero() {
   const [visible, setVisible] = useState(false);
   useEffect(() => { setTimeout(() => setVisible(true), 100); }, []);
@@ -78,7 +71,6 @@ function Hero() {
         background: "linear-gradient(135deg, #0B57B7 0%, #083d82 60%, #0a4ea8 100%)",
       }}
     >
-      {/* Subtle decorative circles */}
       <div className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-10"
         style={{ background: "#F36A10", transform: "translate(30%, -30%)" }} />
       <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full opacity-10"
@@ -116,7 +108,6 @@ function Hero() {
   );
 }
 
-// ─── Section 2: School Introduction ──────────────────────────────────────────
 function Introduction() {
   return (
     <section className="py-20 bg-white">
@@ -161,7 +152,6 @@ function Introduction() {
   );
 }
 
-// ─── Section 3: Mission & Vision ─────────────────────────────────────────────
 function MissionVision() {
   return (
     <section className="py-20" style={{ background: "#EFF5FF" }}>
@@ -214,10 +204,7 @@ function MissionVision() {
   );
 }
 
-// ─── Section 4: Founder / Principal Message ───────────────────────────────────
 function PrincipalMessage() {
-  const imageSrc = "/src/assets/principal/sonali_marne.jpg";
-
   return (
     <section className="py-20 bg-white">
       <div className="max-w-5xl mx-auto px-6 md:px-10">
@@ -227,7 +214,6 @@ function PrincipalMessage() {
         </AnimatedSection>
 
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Image */}
           <AnimatedSection>
             <div className="flex flex-col items-center md:items-start">
               <div
@@ -254,7 +240,7 @@ function PrincipalMessage() {
                   </span>
                 </div>
                 <img
-                  src={imageSrc}
+                  src={principalImage}
                   alt="Sonali Marne — Founder & Principal"
                   className="absolute inset-0 w-full h-full object-cover"
                   onError={(e) => { e.target.style.display = "none"; }}
@@ -265,12 +251,11 @@ function PrincipalMessage() {
                 style={{ background: "#0B57B7", maxWidth: 360, width: "100%" }}
               >
                 <p className="text-white font-bold text-lg">Sonali Marne</p>
-                <p className="text-blue-200 text-sm font-medium">Founder & Principal <br/> Masters in English &  Economics </p>
+                <p className="text-blue-200 text-sm font-medium">Founder & Principal <br /> Masters in English & Economics</p>
               </div>
             </div>
           </AnimatedSection>
 
-          {/* Message */}
           <AnimatedSection delay={0.2}>
             <div className="flex flex-col gap-5">
               <div
@@ -310,228 +295,406 @@ function PrincipalMessage() {
   );
 }
 
-// ─── Section 4.5: Staff Gallery Slider ───────────────────────────────────────
+// ─── Staff Gallery Slider ─────────────────────────────────────────────────────
 function StaffSlider() {
   const staffImages = [
-    {
-      src: "/src/assets/Staff/satff1.jpg",
-      alt: "Wisdom Global School Staff — Group Photo 1",
-    },
-    {
-      src: "/src/assets/Staff/staff.jpg",
-      alt: "Wisdom Global School Staff — Group Photo 2",
-    },
-    {
-      src: "/src/assets/Staff/staff2.jpg",
-      alt: "Wisdom Global School Staff — Group Photo 3",
-    },
-    {
-      src: "/src/assets/Staff/staff3.jpg",
-      alt: "Wisdom Global School Staff — Group Photo 4",
-    },
+    { src: staff1, alt: "Wisdom Global School Staff — Group Photo 1", location: "Vadgaon Budruk Campus" },
+    { src: staff2, alt: "Wisdom Global School Staff — Group Photo 2", location: "Ambegaon Budruk Campus" },
+    { src: staff3, alt: "Wisdom Global School Staff — Group Photo 3", location: "Dhayari Campus" },
   ];
 
   const [current, setCurrent] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [animating, setAnimating] = useState(false);
+  const [direction, setDirection] = useState("next");
   const intervalRef = useRef(null);
+  const containerRef = useRef(null);
+  const [frameHeight, setFrameHeight] = useState("auto");
 
-  const goTo = (index) => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrent(index);
-      setIsTransitioning(false);
-    }, 400);
+  // KEY FIX: measure the actual rendered image height and set the frame to match exactly —
+  // this eliminates ALL blue/empty space above or below the image on every screen size.
+  const activeImgRef = useRef(null);
+  const updateHeight = () => {
+    if (activeImgRef.current && activeImgRef.current.complete) {
+      const img = activeImgRef.current;
+      const containerWidth = img.parentElement?.parentElement?.offsetWidth || window.innerWidth;
+      const naturalRatio = img.naturalHeight / img.naturalWidth;
+      // contain: image fills full width, height scales to match natural ratio
+      const computedHeight = containerWidth * naturalRatio;
+      setFrameHeight(Math.round(computedHeight));
+    }
   };
 
-  const next = () => goTo((current + 1) % staffImages.length);
-  const prev = () => goTo((current - 1 + staffImages.length) % staffImages.length);
-
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % staffImages.length);
-    }, 4000);
-    return () => clearInterval(intervalRef.current);
-  }, []);
-
-  const resetTimer = () => {
+  const startTimer = () => {
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
+      setDirection("next");
       setCurrent((prev) => (prev + 1) % staffImages.length);
-    }, 4000);
+    }, 4500);
   };
 
-  const handlePrev = () => { prev(); resetTimer(); };
-  const handleNext = () => { next(); resetTimer(); };
-  const handleDot = (i) => { goTo(i); resetTimer(); };
+  useEffect(() => {
+    startTimer();
+    window.addEventListener("resize", updateHeight);
+    return () => {
+      clearInterval(intervalRef.current);
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
+
+  const goTo = (index, dir = "next") => {
+    if (animating || index === current) return;
+    setAnimating(true);
+    setDirection(dir);
+    setTimeout(() => {
+      setCurrent(index);
+      setAnimating(false);
+    }, 380);
+    startTimer();
+  };
+
+  const handlePrev = () => goTo((current - 1 + staffImages.length) % staffImages.length, "prev");
+  const handleNext = () => goTo((current + 1) % staffImages.length, "next");
 
   return (
-    <section className="py-0 bg-white">
-      {/* Header */}
-      <div className="max-w-5xl mx-auto px-6 md:px-10 pt-20 pb-10 text-center">
+    <section style={{ background: "#fff", padding: 0 }}>
+
+      {/* ── Header ── */}
+      <div style={{
+        maxWidth: 960,
+        margin: "0 auto",
+        padding: "72px 24px 40px",
+        textAlign: "center",
+      }}>
         <AnimatedSection>
-          <SectionLabel>The Heart of Our School</SectionLabel>
-          <SectionHeading>Meet Our Dedicated Staff</SectionHeading>
-         <p className="max-w-2xl mx-auto text-base leading-relaxed mt-2"
-   style={{ color: "#F36A10" }}>
-  Behind every successful student is a team of passionate educators, mentors, and caregivers who pour their hearts into teaching every single day.
-</p>
-          {/* Tagline */}
-          <div className="mt-6 inline-flex items-center gap-3 px-6 py-3 rounded-full"
-            style={{ background: "linear-gradient(90deg, #EFF5FF 0%, #FFF3E8 100%)", border: "1.5px solid #e8f0fc" }}>
-            <span style={{ color: "#F36A10" }} className="text-lg">✦</span>
-            <span className="font-semibold text-sm md:text-base" style={{ color: "#0B57B7" }}>
+          <span style={{
+            display: "inline-block",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.13em",
+            textTransform: "uppercase",
+            color: "#F36A10",
+            background: "#FFF3E8",
+            padding: "5px 16px",
+            borderRadius: 999,
+            marginBottom: 14,
+          }}>
+            The Heart of Our School
+          </span>
+          <h2 style={{
+            fontSize: "clamp(24px, 6vw, 36px)",
+            fontWeight: 800,
+            color: "#0B57B7",
+            margin: "0 0 10px",
+            lineHeight: 1.2,
+          }}>
+            Meet Our Dedicated Staff
+          </h2>
+          <p style={{
+            fontSize: 14,
+            color: "#F36A10",
+            maxWidth: 480,
+            margin: "0 auto 24px",
+            lineHeight: 1.7,
+            fontWeight: 500,
+          }}>
+            Behind every successful student is a team of passionate educators and mentors who pour their hearts into teaching every single day.
+          </p>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "11px 20px",
+            borderRadius: 999,
+            background: "linear-gradient(90deg, #EFF5FF 0%, #FFF3E8 100%)",
+            border: "1.5px solid #e8f0fc",
+            maxWidth: "92%",
+          }}>
+            <span style={{ color: "#F36A10", fontSize: 13, flexShrink: 0 }}>✦</span>
+            <span style={{ fontWeight: 600, fontSize: 13, color: "#0B57B7", lineHeight: 1.5 }}>
               "Great teachers don't just teach subjects — they teach children how to soar."
             </span>
-            <span style={{ color: "#F36A10" }} className="text-lg">✦</span>
+            <span style={{ color: "#F36A10", fontSize: 13, flexShrink: 0 }}>✦</span>
           </div>
         </AnimatedSection>
       </div>
 
-      {/* Full-width Slider */}
-      <AnimatedSection delay={0.15}>
-        <div className="relative w-full overflow-hidden" style={{ background: "#0B57B7" }}>
-          {/* Slide */}
-          <div
-            className="w-full"
-            style={{
-              aspectRatio: "16/7",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
+      {/* ── Slider Block ── */}
+      <AnimatedSection delay={0.1}>
+        <div ref={containerRef} style={{ width: "100%" }}>
+
+          {/*
+            THE REAL FIX:
+            - No fixed height, no paddingBottom hack
+            - The ACTIVE image is rendered in normal flow (position: static, width: 100%, height: auto)
+            - It naturally sizes the container to the exact image height — zero blue gap guaranteed
+            - All other slides are position:absolute inset:0, hidden behind opacity:0
+          */}
+          <div style={{ position: "relative", width: "100%", overflow: "hidden", background: "#111" }}>
+
+            {/* Render all images stacked; active one drives the height */}
             {staffImages.map((img, i) => (
               <div
                 key={i}
-                className="absolute inset-0 w-full h-full"
                 style={{
+                  position: i === current ? "relative" : "absolute",
+                  inset: i === current ? undefined : 0,
+                  width: "100%",
                   opacity: i === current ? 1 : 0,
-                  transition: "opacity 0.7s cubic-bezier(0.4,0,0.2,1)",
-                  zIndex: i === current ? 1 : 0,
+                  transform: i === current
+                    ? "scale(1) translateX(0)"
+                    : animating
+                      ? direction === "next"
+                        ? "scale(0.98) translateX(-24px)"
+                        : "scale(0.98) translateX(24px)"
+                      : "scale(0.98) translateX(0)",
+                  transition: "opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1)",
+                  zIndex: i === current ? 2 : 1,
+                  pointerEvents: i === current ? "auto" : "none",
                 }}
               >
                 <img
+                  ref={i === current ? activeImgRef : null}
                   src={img.src}
                   alt={img.alt}
-                  className="w-full h-full object-cover object-center"
-                  style={{ display: "block" }}
-                  onError={(e) => {
-                    e.target.style.display = "none";
+                  onLoad={i === current ? updateHeight : undefined}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    height: "auto",          // ← natural height, never crops, zero blue gap
+                    maxHeight: "85vh",       // ← cap on very tall screens so it doesn't go fullscreen
+                    objectFit: "contain",
+                    objectPosition: "center center",
+                    background: "#111",
                   }}
+                  onError={(e) => { e.target.style.display = "none"; }}
                 />
-             
               </div>
             ))}
 
-            {/* Slide Counter */}
-            <div
-              className="absolute top-5 right-6 z-20 text-white text-sm font-semibold px-4 py-1.5 rounded-full"
-              style={{ background: "rgba(11,87,183,0.7)", backdropFilter: "blur(8px)" }}
-            >
+            {/* Counter pill — top right */}
+            <div style={{
+              position: "absolute",
+              top: 14,
+              right: 14,
+              zIndex: 10,
+              background: "rgba(0,0,0,0.55)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              color: "white",
+              fontSize: 12,
+              fontWeight: 700,
+              padding: "5px 14px",
+              borderRadius: 999,
+              letterSpacing: "0.06em",
+              border: "1px solid rgba(255,255,255,0.15)",
+            }}>
               {current + 1} / {staffImages.length}
             </div>
 
-            {/* Caption bottom */}
-            <div
-              className="absolute bottom-0 left-0 right-0 z-20 px-8 py-6"
-              style={{
-                 background: "transparent",
-              }}
-            >
-              <p className="text-white font-bold text-lg md:text-xl">
-                Wisdom Global School — Our Team
-              </p>
-              <p className="text-blue-200 text-sm mt-0.5">
-                {staffImages[current].alt}
-              </p>
+            {/* Campus badge — top left */}
+            <div style={{
+              position: "absolute",
+              top: 14,
+              left: 14,
+              zIndex: 10,
+              background: "rgba(243,106,16,0.92)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              color: "white",
+              fontSize: 11,
+              fontWeight: 700,
+              padding: "5px 13px",
+              borderRadius: 999,
+              letterSpacing: "0.05em",
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}>
+              <span>📍</span>
+              {staffImages[current].location}
             </div>
 
-            {/* Prev / Next Buttons */}
+            {/* Prev button */}
             <button
               onClick={handlePrev}
-              className="absolute left-4 top-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full shadow-lg transition-all"
+              aria-label="Previous"
               style={{
+                position: "absolute",
+                left: 16,
+                top: "50%",
                 transform: "translateY(-50%)",
+                zIndex: 10,
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
                 background: "rgba(255,255,255,0.18)",
                 backdropFilter: "blur(8px)",
-                border: "1.5px solid rgba(255,255,255,0.35)",
+                WebkitBackdropFilter: "blur(8px)",
+                border: "1.5px solid rgba(255,255,255,0.4)",
                 color: "white",
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 0.2s, transform 0.15s",
               }}
-              aria-label="Previous"
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.35)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.18)"; }}
+              onMouseDown={e => { e.currentTarget.style.transform = "translateY(-50%) scale(0.92)"; }}
+              onMouseUp={e => { e.currentTarget.style.transform = "translateY(-50%) scale(1)"; }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
+
+            {/* Next button */}
             <button
               onClick={handleNext}
-              className="absolute right-4 top-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full shadow-lg transition-all"
+              aria-label="Next"
               style={{
+                position: "absolute",
+                right: 16,
+                top: "50%",
                 transform: "translateY(-50%)",
+                zIndex: 10,
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
                 background: "rgba(255,255,255,0.18)",
                 backdropFilter: "blur(8px)",
-                border: "1.5px solid rgba(255,255,255,0.35)",
+                WebkitBackdropFilter: "blur(8px)",
+                border: "1.5px solid rgba(255,255,255,0.4)",
                 color: "white",
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 0.2s, transform 0.15s",
               }}
-              aria-label="Next"
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.35)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.18)"; }}
+              onMouseDown={e => { e.currentTarget.style.transform = "translateY(-50%) scale(0.92)"; }}
+              onMouseUp={e => { e.currentTarget.style.transform = "translateY(-50%) scale(1)"; }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
           </div>
 
-          {/* Dot Indicators */}
-          <div className="flex justify-center gap-2 py-5" style={{ background: "#0B57B7" }}>
-            {staffImages.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => handleDot(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                style={{
-                  width: i === current ? 28 : 10,
-                  height: 10,
-                  borderRadius: 999,
-                  background: i === current ? "#F36A10" : "rgba(255,255,255,0.35)",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)",
-                  padding: 0,
-                }}
-              />
-            ))}
+          {/* Caption bar — sits directly below image, zero gap */}
+          <div style={{
+            background: "#083d82",
+            padding: "14px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            borderTop: "2px solid rgba(243,106,16,0.45)",
+          }}>
+            <div style={{ minWidth: 0 }}>
+              <p style={{
+                color: "white",
+                fontWeight: 800,
+                fontSize: 14,
+                margin: 0,
+                letterSpacing: "0.01em",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}>
+                Wisdom Global School — Our Team
+              </p>
+              <p style={{
+                color: "rgba(255,255,255,0.55)",
+                fontSize: 12,
+                margin: "3px 0 0",
+                fontWeight: 500,
+              }}>
+                Dedicated educators shaping futures every day
+              </p>
+            </div>
+
+            {/* Dot indicators */}
+            <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
+              {staffImages.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i, i > current ? "next" : "prev")}
+                  aria-label={`Go to slide ${i + 1}`}
+                  style={{
+                    width: i === current ? 26 : 8,
+                    height: 8,
+                    borderRadius: 999,
+                    background: i === current ? "#F36A10" : "rgba(255,255,255,0.28)",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                    transition: "all 0.38s cubic-bezier(0.4,0,0.2,1)",
+                    outline: "none",
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </AnimatedSection>
 
-      {/* Stats Row below slider */}
-      <div
-        className="w-full py-10 px-6"
-        style={{ background: "#EFF5FF" }}
-      >
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      {/* ── Stats Row ── */}
+      <div style={{ background: "#EFF5FF", padding: "40px 20px" }}>
+        <div style={{
+          maxWidth: 960,
+          margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: 14,
+        }}>
           {[
-            { number: "50+", label: "Dedicated Staff Members" },
-            { number: "3", label: "Campuses Across Pune" },
-            { number: "10+", label: "Years of Excellence" },
-            { number: "1000+", label: "Students Empowered" },
+            { number: "50+",   label: "Dedicated Staff Members", color: "#0B57B7" },
+            { number: "3",     label: "Campuses Across Pune",    color: "#0B57B7" },
+            { number: "10+",   label: "Years of Excellence",     color: "#F36A10" },
+            { number: "1000+", label: "Students Empowered",      color: "#F36A10" },
           ].map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-1">
-              <span className="text-3xl md:text-4xl font-black" style={{ color: "#0B57B7" }}>
+            <div
+              key={stat.label}
+              style={{
+                background: "white",
+                borderRadius: 18,
+                padding: "22px 14px",
+                textAlign: "center",
+                boxShadow: "0 2px 14px rgba(11,87,183,0.08)",
+              }}
+            >
+              <div style={{
+                fontSize: "clamp(28px, 8vw, 38px)",
+                fontWeight: 900,
+                color: stat.color,
+                lineHeight: 1,
+                marginBottom: 6,
+              }}>
                 {stat.number}
-              </span>
-              <span className="text-xs md:text-sm font-semibold text-gray-500 leading-tight">{stat.label}</span>
+              </div>
+              <div style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#999",
+                lineHeight: 1.4,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+              }}>
+                {stat.label}
+              </div>
             </div>
           ))}
         </div>
       </div>
+
     </section>
   );
 }
 
-// ─── Section 5: Timeline ─────────────────────────────────────────────────────
 function Timeline() {
   const milestones = [
     {
@@ -575,7 +738,6 @@ function Timeline() {
                 className="rounded-2xl p-7 h-full flex flex-col gap-4 shadow-sm relative overflow-hidden"
                 style={{ background: "#FFF3E8", border: "1.5px solid #fdd9b5" }}
               >
-                {/* Year stamp */}
                 <div
                   className="absolute top-5 right-5 text-5xl font-black opacity-10 select-none"
                   style={{ color: "#F36A10", lineHeight: 1 }}
@@ -610,7 +772,6 @@ function Timeline() {
   );
 }
 
-// ─── Section 6: Core Values ───────────────────────────────────────────────────
 function CoreValues() {
   const values = [
     {
@@ -662,8 +823,6 @@ function CoreValues() {
   );
 }
 
-// ─── Section 7: Why Parents Trust Us ─────────────────────────────────────────
-// ─── Section 7: Why Parents Trust Us ─────────────────────────────────────────
 function WhyTrustUs() {
   const reasons = [
     { icon: "👩‍🏫", label: "Experienced Educators", desc: "Dedicated teachers who genuinely care about each child's progress and wellbeing." },
@@ -677,15 +836,12 @@ function WhyTrustUs() {
       className="py-24 relative overflow-hidden"
       style={{ background: "linear-gradient(135deg, #0B57B7 0%, #083d82 100%)" }}
     >
-      {/* Decorative */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 w-96 h-96 rounded-full opacity-5"
           style={{ background: "#F36A10", transform: "translate(-50%, -50%)" }} />
       </div>
 
       <div className="max-w-5xl mx-auto px-6 md:px-10 relative z-10">
-
-        {/* Header — no AnimatedSection, always visible */}
         <div className="text-center mb-14">
           <span
             className="inline-block text-xs font-semibold tracking-widest uppercase mb-3 px-3 py-1 rounded-full"
@@ -701,7 +857,6 @@ function WhyTrustUs() {
           </p>
         </div>
 
-        {/* Cards — no AnimatedSection, always visible */}
         <div className="grid sm:grid-cols-2 gap-6">
           {reasons.map((r) => (
             <div
@@ -726,7 +881,6 @@ function WhyTrustUs() {
           ))}
         </div>
 
-        {/* Quote — no AnimatedSection, always visible */}
         <div className="text-center mt-14">
           <p
             className="italic text-base max-w-2xl mx-auto leading-relaxed font-medium"
@@ -738,13 +892,11 @@ function WhyTrustUs() {
             — The Wisdom Global School Family
           </p>
         </div>
-
       </div>
     </section>
   );
 }
 
-// ─── Footer Strip ─────────────────────────────────────────────────────────────
 function FooterStrip() {
   return (
     <div className="py-6 text-center text-sm text-gray-400 bg-white border-t" style={{ borderColor: "#e8f0fc" }}>
@@ -753,7 +905,6 @@ function FooterStrip() {
   );
 }
 
-// ─── Main About Page ──────────────────────────────────────────────────────────
 export default function About() {
   useEffect(() => {
     const link = document.createElement("link");
