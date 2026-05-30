@@ -167,6 +167,56 @@ export default function Footer() {
           padding-bottom: 8px;
           border-bottom: 1px solid rgba(255,255,255,0.25);
         }
+          /* ── Trovira badge ── */
+@keyframes troviraShine {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.trovira-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 3px 6px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14);
+  text-decoration: none;
+  transition: background 0.25s, border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+}
+
+.trovira-badge:hover {
+  background: rgba(243,106,16,0.12);
+  border-color: rgba(243,106,16,0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(243,106,16,0.18);
+}
+
+.trovira-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #F36A10;
+  box-shadow: 0 0 6px rgba(243,106,16,0.7);
+  flex-shrink: 0;
+}
+
+.trovira-text {
+  background: linear-gradient(
+    90deg,
+    rgba(191,219,254,0.6),
+    #F36A10,
+    rgba(191,219,254,0.6)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: troviraShine 3s linear infinite;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
       `}</style>
 
       <footer className="footer-font" style={{ background: "#0B57B7" }}>
@@ -336,6 +386,31 @@ export default function Footer() {
             </p>
             <p style={{ color: "rgba(191,219,254,0.6)", fontSize: 11 }}>
               Educating Minds · Shaping Futures
+            </p>
+            {/* Privacy Policy Link */}
+            <Link
+              to="/privacy-policy"
+              className="footer-link"
+              style={{
+                color: "rgba(191,219,254,0.75)",
+                fontSize: 11,
+                textDecoration: "none",
+              }}
+            >
+              Privacy Policy
+            </Link>
+            {/* Trovira styled badge */}
+            <p style={{ color: "rgba(191,219,254,0.5)", fontSize: 11, display: "flex", alignItems: "center", gap: 5 }}>
+              Designed by{" "}
+              <a
+                href="https://www.troviracompany.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="trovira-badge"
+              >
+                <span className="trovira-dot" />
+                <span className="trovira-text">The Trovira Company</span>
+              </a>
             </p>
           </div>
         </div>

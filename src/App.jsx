@@ -12,8 +12,10 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import WhatsAppButton from "./components/WhatsAppButton";
 import Loader from "./components/Loader";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+// import CookieBanner from "./components/CookieBanner";
 
-// ✅ ScrollToTop component (same file madhe add kelela)
+
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -25,7 +27,26 @@ function ScrollToTop() {
 }
 
 function App() {
-  const [loading, setLoading] = useState(true);
+  const computeInitialLoading = () => {
+    try {
+      // If the window was opened via window.open (has an opener), skip loader
+      if (window.opener) return false;
+
+      const ref = document.referrer || "";
+
+      // If there's a referrer and the history length is 1 it's very likely
+      // this page was opened in a new tab/window (target="_blank" / window.open())
+      // — in that case skip the loader so the new tab doesn't show it.
+      if (ref && window.history.length <= 1) return false;
+
+      // Otherwise show the loader (normal first-time navigation or direct visits)
+      return true;
+    } catch (e) {
+      return true;
+    }
+  };
+
+  const [loading, setLoading] = useState(computeInitialLoading);
 
   if (loading) {
     return <Loader onFinish={() => setLoading(false)} />;
@@ -46,10 +67,12 @@ function App() {
         <Route path="/branches" element={<Branches />} />
         <Route path="/facilities" element={<Facilities />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
 
       <Footer />
       <WhatsAppButton />
+      {/* <CookieBanner /> */}
 
     </BrowserRouter>
   );
