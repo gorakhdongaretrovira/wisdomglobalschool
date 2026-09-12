@@ -167,13 +167,13 @@ export default function Footer() {
           padding-bottom: 8px;
           border-bottom: 1px solid rgba(255,255,255,0.25);
         }
-          /* ── Trovira badge ── */
-@keyframes troviraShine {
+          /* ── GD AI SOLUTIONS badge ── */
+@keyframes gdShine {
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 
-.trovira-badge {
+.gd-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -185,14 +185,14 @@ export default function Footer() {
   transition: background 0.25s, border-color 0.25s, transform 0.2s, box-shadow 0.25s;
 }
 
-.trovira-badge:hover {
+.gd-badge:hover {
   background: rgba(243,106,16,0.12);
   border-color: rgba(243,106,16,0.35);
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(243,106,16,0.18);
 }
 
-.trovira-dot {
+.gd-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -201,7 +201,7 @@ export default function Footer() {
   flex-shrink: 0;
 }
 
-.trovira-text {
+.gd-text {
   background: linear-gradient(
     90deg,
     rgba(191,219,254,0.6),
@@ -212,7 +212,7 @@ export default function Footer() {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: troviraShine 3s linear infinite;
+  animation: gdShine 3s linear infinite;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -399,17 +399,17 @@ export default function Footer() {
             >
               Privacy Policy
             </Link>
-            {/* Trovira styled badge */}
+            {/* GD AI SOLUTIONS badge */}
             <p style={{ color: "rgba(191,219,254,0.5)", fontSize: 11, display: "flex", alignItems: "center", gap: 5 }}>
               Designed by{" "}
               <a
-                href="https://www.troviracompany.com/"
+                href="https://www.gdaisolutions.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="trovira-badge"
+                className="gd-badge"
               >
-                <span className="trovira-dot" />
-                <span className="trovira-text">The Trovira Company</span>
+                <span className="gd-dot" />
+                <span className="gd-text">GD AI SOLUTIONS</span>
               </a>
             </p>
           </div>
